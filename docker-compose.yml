@@ -1,0 +1,45 @@
+version: '3'
+
+services:
+
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:$ELASTIC_VERSION
+    volumes:
+      - ./elastic/elastic.yml:/usr/share/elasticsearch/config/elasticsearch.yml:ro
+    ports:
+      - "9200:9200"
+      - "9300:9300"
+    networks:
+      - elk
+
+  logstash:
+    build:
+      context: logstash/
+      args:
+        LOGSTASH_VERSION: $LOGSTASH_VERSION
+#    image: docker.elastic.co/logstash/logstash:$LOGSTASH_VERSION
+#    volumes:
+#     - ./logstash/logstash.yml:/usr/share/logstash/config/logstash.yml:ro
+#     - ./logstash/${LOGSTASH_IO_MODE}/pipeline.conf:/usr/share/logstash/pipeline/logstash.conf:ro
+#     - ./logstash/${LOGSTASH_IO_MODE}/mysql-connector-java-5.1.36-bin.jar:/usr/share/logstash/mysql-connector-java-5.1.36-bin.jar
+    ports:
+     - "5000:5000"
+    networks:
+     - elk
+    depends_on:
+     - elasticsearch
+
+  kibana:
+    image: docker.elastic.co/kibana/kibana:$KIBANA_VERSION
+    volumes:
+     - ./kibana/kibana.yml:/usr/share/kibana/config/kibana.yml:ro
+    ports:
+     - "5601:5601"
+    networks:
+     - elk
+    depends_on:
+     - elasticsearch
+
+networks:
+  elk:
+    driver: bridge
